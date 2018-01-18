@@ -4,7 +4,6 @@
 __author__ = 'geurt'
 import traceback
 import time
-
 import wiringpi as wiringpi
 
 
@@ -81,9 +80,9 @@ def doUpdate(NodeControl):
     except Exception, exp:
         NodeControl.log.warning("Error sauna status update, error: %s." % (traceback.format_exc()))
 
-
 def getTemp(NodeControl, sSensorPath):
     # Read ds18b20 sensors
+    # TODO: move to lib generic
     try:
         f = open(sSensorPath, 'r')
         line = f.readline() # read 1st line

@@ -13,7 +13,6 @@ import saunaStatusUpload
 class saunaControlError(Exception):
     pass
 
-
 class saunaControl(object):
     """
     Sauna Control class. MQTT connection: subscribes to MQTT. All *cmd are commands

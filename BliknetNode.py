@@ -10,10 +10,8 @@ import saunaStatusUpload
 import saunaControl
 import wiringpi as wiringpi
 
-
 def saunaStatusUploadEvent(NodeControl):
     saunaStatusUpload.doUpdate(NodeControl)
-
 
 if __name__ == '__main__':
     now = datetime.datetime.now()
