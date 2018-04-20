@@ -39,7 +39,7 @@ class saunaControl(object):
         self._NodeControl.log.info("ON MESSAGE:" + msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
         if (msg.topic == "sauna/kachelcmd"):
             sCMD = str(msg.payload)
-            if (sCMD == "AAN") and ((self._NodeControl.getProperty("kachelcmd") == None) or (
+            if (sCMD == "ON") and ((self._NodeControl.getProperty("kachelcmd") == None) or (
                     self._NodeControl.getProperty("kachelcmd") == -1) ):
                 iDefSaunaTemp = 90
                 if self._NodeControl.nodeProps.has_option('saunacontrol', 'defaulttemp'):
@@ -57,7 +57,7 @@ class saunaControl(object):
                     fAutoOffInt = float(self._NodeControl.nodeProps.get('saunacontrol', 'autoSaunaOff'))
                     self._NodeControl.log.debug("Set auto shut down to: %s" % str(fAutoOffInt))
                     reactor.callLater(fAutoOffInt, self.saunaAutoShutDownOffEvent)
-            elif (sCMD == "UIT"):
+            elif (sCMD == "OFF"):
                 self._NodeControl.setProperty("kachelcmd", -1)
                 self.saunaControlEvent()
         if (msg.topic == "sauna/saunatempcmd"):
