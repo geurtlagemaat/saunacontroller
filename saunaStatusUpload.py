@@ -5,7 +5,9 @@ __author__ = 'geurt'
 import traceback
 import time
 import wiringpi as wiringpi
+import Adafruit_DHT
 
+DHT_SENSOR = Adafruit_DHT.DHT22
 
 def doUpdate(NodeControl):
     """
@@ -16,10 +18,10 @@ def doUpdate(NodeControl):
         if ((NodeControl.getProperty("kachelstarteddatetime") != None) and (
                 NodeControl.getProperty("kachelstarteddatetime") != -1) ):
             NodeControl.log.debug("publish sauna switched on")
-            NodeControl.MQTTPublish(sTopic="sauna/switchedon", sValue="1", iQOS=0, bRetain=False)
+            NodeControl.MQTTPublish(sTopic="sauna/switchedon", sValue="ON", iQOS=0, bRetain=False)
         else:
             NodeControl.log.debug("publish sauna switched off")
-            NodeControl.MQTTPublish(sTopic="sauna/switchedon", sValue="0", iQOS=0, bRetain=False)
+            NodeControl.MQTTPublish(sTopic="sauna/switchedon", sValue="OFF", iQOS=0, bRetain=False)
 
         if NodeControl.nodeProps.has_option('saunastatus', 'tempInSensorPath'):
             sInlaat = '{:.3f}'.format(
@@ -40,10 +42,10 @@ def doUpdate(NodeControl):
             NodeControl.log.warning("Can not read temp, no [sauna] tempInSensorPath configured")
 
         if wiringpi.digitalRead(25):
-            NodeControl.MQTTPublish(sTopic="sauna/kachelstatus", sValue="1", iQOS=2, bRetain=False)
+            NodeControl.MQTTPublish(sTopic="sauna/kachelstatus", sValue="ON", iQOS=2, bRetain=False)
             NodeControl.log.debug("current kachel status is on")
         else:
-            NodeControl.MQTTPublish(sTopic="sauna/kachelstatus", sValue="0", iQOS=2, bRetain=False)
+            NodeControl.MQTTPublish(sTopic="sauna/kachelstatus", sValue="OFF", iQOS=2, bRetain=False)
             NodeControl.log.debug("current kachel status is off")
 
         if ((NodeControl.getProperty("kachelstarteddatetime") != None) and (
@@ -76,7 +78,23 @@ def doUpdate(NodeControl):
         else:
             NodeControl.log.debug("No kachelstarteddatetime property available")
             NodeControl.MQTTPublish(sTopic="sauna/autoshutdown", sValue="-1", iQOS=0, bRetain=False)
-
+        dhtTemp, dhtHum = getDHTData(NodeControl, 13)
+        if dhtTemp is not None:
+            NodeControl.MQTTPublish(sTopic="sauna/dht13/temp", sValue="{0:0.1f}".format(dhtTemp), iQOS=0, bRetain=False)
+        if dhtHum is not None:
+            NodeControl.MQTTPublish(sTopic="sauna/dht13/hum", sValue="{:.1f}".format(dhtHum), iQOS=0, bRetain=False)
+        dhtTemp, dhtHum = getDHTData(NodeControl, 16)
+        if dhtTemp is not None:
+            NodeControl.MQTTPublish(sTopic="sauna/dht16/temp", sValue="{0:0.1f}".format(dhtTemp), iQOS=0,
+                                    bRetain=False)
+        if dhtHum is not None:
+            NodeControl.MQTTPublish(sTopic="sauna/dht16/hum", sValue="{:.1f}".format(dhtHum), iQOS=0, bRetain=False)
+        dhtTemp, dhtHum = getDHTData(NodeControl, 19)
+        if dhtTemp is not None:
+            NodeControl.MQTTPublish(sTopic="sauna/dht19/temp", sValue="{0:0.1f}".format(dhtTemp), iQOS=0,
+                                    bRetain=False)
+        if dhtHum is not None:
+            NodeControl.MQTTPublish(sTopic="sauna/dht19/hum", sValue="{:.1f}".format(dhtHum), iQOS=0, bRetain=False)
     except Exception, exp:
         NodeControl.log.warning("Error sauna status update, error: %s." % (traceback.format_exc()))
 
@@ -98,3 +116,12 @@ def getTemp(NodeControl, sSensorPath):
     except Exception, exp:
         NodeControl.log.warning("Error reading sensor, path: %s, error: %s." % (sSensorPath, traceback.format_exc()))
         return 99999
+
+def getDHTData(NodeControl, DHT_PIN):
+    DHT_SENSOR = Adafruit_DHT.DHT22
+    humidity, temperature = Adafruit_DHT.read_retry(DHT_SENSOR, DHT_PIN)
+    if humidity is not None and temperature is not None and humidity<=100:
+        NodeControl.log.debug("Temp={0:0.1f}*C  Humidity={1:0.1f}%".format(temperature, humidity))
+        return temperature, humidity
+    else:
+        return None, None
